@@ -2,41 +2,26 @@
 
 ## Installation
 
-1. **Download/Clone the Extension**
-   - Make sure all files are in the `Bulk-File-Downloader-for-Google-Classroom-main` folder
+1. Download/Clone the Extension
+2. Make sure all files are in the `Bulk-File-Downloader-for-Google-Classroom-main` folder
+3. Open Google Chrome and navigate to `chrome://extensions/`
+   Or go to Menu -> More Tools -> Extensions
+4. Toggle the "Developer mode" switch in the top-right corner
+5. Click "Load unpacked" button
+6. Select the `Bulk-File-Downloader-for-Google-Classroom-main` folder (the folder containing `manifest.json`)
 
-2. **Open Chrome Extensions Page**
-   - Open Google Chrome
-   - Navigate to `chrome://extensions/`
-   - Or go to Menu → More Tools → Extensions
-
-3. **Enable Developer Mode**
-   - Toggle the "Developer mode" switch in the top-right corner
-
-4. **Load the Extension**
-   - Click "Load unpacked" button
-   - Select the `Bulk-File-Downloader-for-Google-Classroom-main` folder (the folder containing `manifest.json`)
-   - The extension should now appear in your extensions list
-
-5. **Verify Installation**
-   - You should see the extension icon in your Chrome toolbar
-   - The extension name should be "Bulk File Downloader for Google Classroom"
+The extension should now appear in your extensions list. You should see the extension icon in your Chrome toolbar. The extension name should be "Bulk File Downloader for Google Classroom"
 
 ## Usage
 
-1. **Open Google Classroom**
-   - Navigate to `https://classroom.google.com`
-   - Log in with your Google account
-   - Open any class with files/attachments
+1. Open Google Classroom and navigate to `https://classroom.google.com`
+2. Open any class with files/attachments
 
-2. **Floating Panel Appears**
-   - A floating panel will appear in the top-right corner
-   - It automatically detects files on the current page
+A floating panel will appear in the top-right corner. It automatically detects files on the current page
 
 3. **Select Files**
    - Check the boxes next to files you want to download
    - Use "Select All" to select all files at once
-   - The panel shows how many files are selected
 
 4. **Download**
    - Check "Package as ZIP" if you want a single ZIP file
@@ -117,7 +102,7 @@ This extension follows a **critical architecture rule**:
 ## Troubleshooting
 
 ### Floating Panel Not Appearing
-- Refresh the Classroom page (F5)
+- Refresh the Classroom page if files get messy
 - Check browser console (F12) for errors
 - Make sure you're on a Classroom page with files
 
