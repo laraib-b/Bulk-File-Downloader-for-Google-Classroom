@@ -53,12 +53,18 @@
 </head>
 <body>
   <h2>📥 Bulk File Downloader</h2>
-  <div class="status" id="status">Use the floating panel on Classroom pages to select and download files.</div>
+  
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: #f0f0f0; border-radius: 4px;">
+    <label for="togglePanel" style="font-size: 14px; font-weight: 500; cursor: pointer; flex: 1;">Show Download Panel</label>
+    <input type="checkbox" id="togglePanel" style="width: 40px; height: 20px; cursor: pointer;">
+  </div>
+  
+  <div class="status" id="status">Toggle the panel on to see the download interface on Classroom pages.</div>
   
   <button class="button" id="refreshBtn">Refresh File List</button>
   
   <div class="info">
-    The floating panel appears automatically on Google Classroom pages. Select files there and click "Download Selected".
+    Enable the toggle above to show the floating panel on Google Classroom pages. Select files and click "Download Selected".
   </div>
 
   <script src="popup.js"></script>
