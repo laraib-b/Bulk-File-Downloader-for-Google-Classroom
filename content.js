@@ -20,7 +20,20 @@
   let currentPageUrl = window.location.href; // Track current Classroom page
   let currentClassroomId = null; // Current classroom ID
   let downloadedFilesByClassroom = {}; // Track downloaded files per classroom: {classroomKey: Set(fileUrls)}
+  let panelEnabled = false; // Panel visibility state (default: hidden)
   
+  // Load panel toggle state from storage
+  function loadPanelToggleState() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['panelEnabled'], (result) => {
+        // Default to false (panel hidden by default)
+        panelEnabled = result.panelEnabled === true;
+        console.log('Bulk Downloader: Panel toggle state loaded:', panelEnabled);
+        resolve();
+      });
+    });
+  }
+
   // Load downloaded files history from storage
   function loadDownloadedFilesHistory() {
     return new Promise((resolve) => {
@@ -36,7 +49,8 @@
           for (const [key, fileSet] of Object.entries(downloadedFilesByClassroom)) {
             console.log('Bulk Downloader: Classroom', key, 'has', fileSet.size, 'downloaded files');
           }
-        } else {
+        } 
+        else {
           console.log('Bulk Downloader: No downloaded files history found in storage');
         }
         resolve();
@@ -63,20 +77,32 @@
   // Initialize
   async function init() {
     console.log('Bulk Downloader: Initializing...');
-    // Load downloaded files history first
+    // Load panel toggle state first
+    await loadPanelToggleState();
+    // Load downloaded files history
     await loadDownloadedFilesHistory();
     currentPageUrl = window.location.href;
     currentClassroomId = getClassroomKey(currentPageUrl);
     console.log('Bulk Downloader: Current classroom ID:', currentClassroomId);
     clearFilesForNewPage(); // Clear any old files
-    createFloatingPanel();
+    
+    // Only create panel if it's enabled
+    if (panelEnabled) {
+      createFloatingPanel();
+    } 
+    else {
+      console.log('Bulk Downloader: Panel is disabled. Enable it from the extension popup to use.');
+    }
+    
     setupClickDetection(); // Setup click detection for tabs/sections
     setupMutationObserver();
     setupUrlChangeDetection();
-    // Initial scan after page loads (with delay to let content render)
-    setTimeout(() => {
-      scanForFiles();
-    }, 1000);
+    // Initial scan after page loads (with delay to let content render) - only if panel is enabled
+    if (panelEnabled) {
+      setTimeout(() => {
+        scanForFiles();
+      }, 1000);
+    }
   }
 
   // Get classroom key from URL (classroom ID)
@@ -93,7 +119,8 @@
       // Fallback to full URL if no classroom ID found
       console.log('Bulk Downloader: No classroom ID found in URL, using pathname');
       return urlObj.pathname;
-    } catch (e) {
+    } 
+    catch (e) {
       console.error('Bulk Downloader: Error extracting classroom key:', e);
       return url;
     }
@@ -106,7 +133,8 @@
       // Keep only the pathname and important parts, remove query params that might change
       // For Google Drive/Docs, the file ID is what matters
       return urlObj.origin + urlObj.pathname;
-    } catch (e) {
+    } 
+    catch (e) {
       return url;
     }
   }
@@ -141,7 +169,8 @@
       
       // Update panel to show only files from new classroom (if any)
       updateFloatingPanel();
-    } else if (isDifferentPage) {
+    } 
+    else if (isDifferentPage) {
       // Same classroom but different section - keep files from this classroom
       console.log('Bulk Downloader: Different section in same classroom, keeping files');
       currentPageUrl = newUrl;
@@ -187,7 +216,8 @@
       } else {
         console.log('Bulk Downloader: Scanning entire document (no section found)');
       }
-    } else {
+    } 
+    else {
       console.log('Bulk Downloader: Scanning entire document');
     }
     
@@ -222,7 +252,8 @@
           console.log('Bulk Downloader: ✓ SKIPPING already downloaded file!');
           return;
         }
-      } else {
+      } 
+      else {
         console.log('Bulk Downloader: No downloaded history for classroom:', currentClassroomKey, 'Available classrooms:', Object.keys(downloadedFilesByClassroom));
       }
       
@@ -238,7 +269,8 @@
         const urlMatch = href.match(/([^\/]+\.(pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar|txt|jpg|jpeg|png|gif|mp4|mp3))/i);
         if (urlMatch) {
           fileName = urlMatch[1];
-        } else {
+        } 
+        else {
           fileName = 'Attachment';
         }
       }
@@ -327,7 +359,8 @@
         const urlMatch = href.match(/([^\/]+\.(pdf|doc|docx|ppt|pptx|xls|xlsx|zip|rar|txt|jpg|jpeg|png|gif|mp4|mp3))/i);
         if (urlMatch) {
           fileName = urlMatch[1];
-        } else {
+        } 
+        else {
           fileName = `File_${index + 1}`;
         }
       }
@@ -410,6 +443,27 @@
     }, 2000);
   }
 
+  // Show the floating panel
+  function showFloatingPanel() {
+    const panel = document.getElementById('gc-bulk-downloader-panel');
+    if (panel) {
+      panel.style.display = 'block';
+      console.log('Bulk Downloader: Panel shown');
+    } else {
+      // Panel doesn't exist, create it
+      createFloatingPanel();
+    }
+  }
+
+  // Hide the floating panel
+  function hideFloatingPanel() {
+    const panel = document.getElementById('gc-bulk-downloader-panel');
+    if (panel) {
+      panel.style.display = 'none';
+      console.log('Bulk Downloader: Panel hidden');
+    }
+  }
+
   // Step 4: Create floating panel (independent container, not in Classroom DOM)
   function createFloatingPanel() {
     // Remove existing panel if any
@@ -421,6 +475,8 @@
     const panel = document.createElement('div');
     panel.id = 'gc-bulk-downloader-panel';
     panel.className = 'gc-bulk-downloader-panel';
+    // Set initial visibility based on toggle state
+    panel.style.display = panelEnabled ? 'block' : 'none';
     
     // Panel header
     const header = document.createElement('div');
@@ -550,7 +606,8 @@
       checkbox.addEventListener('change', (e) => {
         if (e.target.checked) {
           selectedFileIds.add(fileData.id);
-        } else {
+        } 
+        else {
           selectedFileIds.delete(fileData.id);
         }
         updateFloatingPanel();
@@ -847,6 +904,33 @@
       return true;
     }
     
+    // Toggle panel visibility
+    if (request.action === 'togglePanel') {
+      panelEnabled = request.enabled === true;
+      console.log('Bulk Downloader: Panel toggle received, enabled:', panelEnabled);
+      
+      if (panelEnabled) {
+        // Show panel - create if it doesn't exist
+        const panel = document.getElementById('gc-bulk-downloader-panel');
+        if (!panel) {
+          createFloatingPanel();
+          // Scan for files when panel is enabled
+          setTimeout(() => {
+            scanForFiles();
+          }, 500);
+        } 
+        else {
+          showFloatingPanel();
+        }
+      } else {
+        // Hide panel
+        hideFloatingPanel();
+      }
+      
+      sendResponse({ success: true, enabled: panelEnabled });
+      return true;
+    }
+    
     // Fetch file blob for ZIP creation (content script has cookie access)
     if (request.action === 'fetchFileBlob') {
       fetchFileBlobForZip(request.url)
@@ -863,7 +947,8 @@
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
-  } else {
+  } 
+  else {
     init();
   }
 })();
